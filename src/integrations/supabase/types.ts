@@ -14,16 +14,200 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      matches: {
+        Row: {
+          city: string
+          country: string
+          created_at: string
+          featured: boolean
+          group_name: string | null
+          id: string
+          kickoff_at: string
+          match_number: number | null
+          score_away: number | null
+          score_home: number | null
+          stage: string
+          status: string
+          team_away: string
+          team_away_code: string | null
+          team_home: string
+          team_home_code: string | null
+          venue: string
+        }
+        Insert: {
+          city: string
+          country: string
+          created_at?: string
+          featured?: boolean
+          group_name?: string | null
+          id?: string
+          kickoff_at: string
+          match_number?: number | null
+          score_away?: number | null
+          score_home?: number | null
+          stage?: string
+          status?: string
+          team_away: string
+          team_away_code?: string | null
+          team_home: string
+          team_home_code?: string | null
+          venue: string
+        }
+        Update: {
+          city?: string
+          country?: string
+          created_at?: string
+          featured?: boolean
+          group_name?: string | null
+          id?: string
+          kickoff_at?: string
+          match_number?: number | null
+          score_away?: number | null
+          score_home?: number | null
+          stage?: string
+          status?: string
+          team_away?: string
+          team_away_code?: string | null
+          team_home?: string
+          team_home_code?: string | null
+          venue?: string
+        }
+        Relationships: []
+      }
+      news: {
+        Row: {
+          body: string | null
+          category: string | null
+          created_at: string
+          excerpt: string | null
+          id: string
+          image_url: string | null
+          published_at: string
+          title: string
+        }
+        Insert: {
+          body?: string | null
+          category?: string | null
+          created_at?: string
+          excerpt?: string | null
+          id?: string
+          image_url?: string | null
+          published_at?: string
+          title: string
+        }
+        Update: {
+          body?: string | null
+          category?: string | null
+          created_at?: string
+          excerpt?: string | null
+          id?: string
+          image_url?: string | null
+          published_at?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      site_settings: {
+        Row: {
+          currency: string
+          id: string
+          payment_methods: Json
+          updated_at: string
+          whatsapp_number: string
+        }
+        Insert: {
+          currency?: string
+          id?: string
+          payment_methods?: Json
+          updated_at?: string
+          whatsapp_number?: string
+        }
+        Update: {
+          currency?: string
+          id?: string
+          payment_methods?: Json
+          updated_at?: string
+          whatsapp_number?: string
+        }
+        Relationships: []
+      }
+      ticket_categories: {
+        Row: {
+          available: number
+          created_at: string
+          description: string | null
+          id: string
+          match_id: string
+          name: string
+          price: number
+          sort_order: number
+        }
+        Insert: {
+          available?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          match_id: string
+          name: string
+          price?: number
+          sort_order?: number
+        }
+        Update: {
+          available?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          match_id?: string
+          name?: string
+          price?: number
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_categories_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +334,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const
