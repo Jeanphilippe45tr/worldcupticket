@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as NewsRouteImport } from './routes/news'
 import { Route as MatchesRouteImport } from './routes/matches'
 import { Route as CartRouteImport } from './routes/cart'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as MatchesMatchIdRouteImport } from './routes/matches.$matchId'
 
@@ -30,6 +31,11 @@ const CartRoute = CartRouteImport.update({
   path: '/cart',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -43,6 +49,7 @@ const MatchesMatchIdRoute = MatchesMatchIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
   '/matches': typeof MatchesRouteWithChildren
   '/news': typeof NewsRoute
@@ -50,6 +57,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
   '/matches': typeof MatchesRouteWithChildren
   '/news': typeof NewsRoute
@@ -58,6 +66,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
   '/matches': typeof MatchesRouteWithChildren
   '/news': typeof NewsRoute
@@ -65,14 +74,28 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/cart' | '/matches' | '/news' | '/matches/$matchId'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/cart'
+    | '/matches'
+    | '/news'
+    | '/matches/$matchId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/cart' | '/matches' | '/news' | '/matches/$matchId'
-  id: '__root__' | '/' | '/cart' | '/matches' | '/news' | '/matches/$matchId'
+  to: '/' | '/auth' | '/cart' | '/matches' | '/news' | '/matches/$matchId'
+  id:
+    | '__root__'
+    | '/'
+    | '/auth'
+    | '/cart'
+    | '/matches'
+    | '/news'
+    | '/matches/$matchId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthRoute: typeof AuthRoute
   CartRoute: typeof CartRoute
   MatchesRoute: typeof MatchesRouteWithChildren
   NewsRoute: typeof NewsRoute
@@ -99,6 +122,13 @@ declare module '@tanstack/react-router' {
       path: '/cart'
       fullPath: '/cart'
       preLoaderRoute: typeof CartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -131,6 +161,7 @@ const MatchesRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthRoute: AuthRoute,
   CartRoute: CartRoute,
   MatchesRoute: MatchesRouteWithChildren,
   NewsRoute: NewsRoute,
