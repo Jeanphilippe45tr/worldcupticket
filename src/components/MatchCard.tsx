@@ -41,6 +41,9 @@ export function MatchCard({ match, minPrice }: { match: Tables<"matches">; minPr
           </p>
         </div>
       </div>
+      <div className="mt-2 flex h-10 items-center justify-center rounded-md bg-gold text-xs font-bold uppercase tracking-wider text-pitch transition-colors group-hover:bg-gold-glow">
+        Select tickets →
+      </div>
     </Link>
   );
 }
