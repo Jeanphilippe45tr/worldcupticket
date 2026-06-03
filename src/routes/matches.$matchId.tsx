@@ -92,7 +92,12 @@ function MatchDetail() {
                         price: Number(t.price),
                         quantity: q,
                       });
-                      toast.success("Added to cart");
+                      toast.success(`${q}× ${t.name} added to cart`, {
+                        action: {
+                          label: "View cart",
+                          onClick: () => { window.location.href = "/cart"; },
+                        },
+                      });
                     }}
                     className="h-10 rounded-md bg-gold px-4 text-sm font-bold uppercase text-pitch hover:bg-gold-glow"
                   >

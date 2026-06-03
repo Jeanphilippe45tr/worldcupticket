@@ -17,15 +17,15 @@ const schema = z.object({
 
 function AuthPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (user) navigate({ to: "/", replace: true });
-  }, [user, navigate]);
+    if (user) navigate({ to: isAdmin ? "/admin" : "/", replace: true });
+  }, [user, isAdmin, navigate]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -49,7 +49,19 @@ function AuthPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         toast.success("Signed in");
-        navigate({ to: "/", replace: true });
+        // Check admin role to redirect appropriately
+        const { data: sess } = await supabase.auth.getUser();
+        if (sess.user) {
+          const { data: roleRow } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", sess.user.id)
+            .eq("role", "admin")
+            .maybeSingle();
+          navigate({ to: roleRow ? "/admin" : "/", replace: true });
+        } else {
+          navigate({ to: "/", replace: true });
+        }
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Authentication failed");
