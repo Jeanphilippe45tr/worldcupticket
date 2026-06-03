@@ -17,15 +17,15 @@ const schema = z.object({
 
 function AuthPage() {
   const navigate = useNavigate();
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, loading: authLoading } = useAuth();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (user) navigate({ to: isAdmin ? "/admin" : "/", replace: true });
-  }, [user, isAdmin, navigate]);
+    if (!authLoading && user) navigate({ to: isAdmin ? "/admin" : "/", replace: true });
+  }, [user, isAdmin, authLoading, navigate]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
