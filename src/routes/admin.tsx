@@ -1,12 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { matchesQuery, settingsQuery, newsQuery } from "@/lib/queries";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/format";
-import { Trash2, Save, Plus } from "lucide-react";
+import { Trash2, Save, Plus, RefreshCw } from "lucide-react";
+import { syncFifaMatches } from "@/lib/fifa-sync.functions";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin — World Cup Tickets" }] }),
@@ -35,10 +37,44 @@ function AdminPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 md:px-6">
       <h1 className="mb-8 text-3xl font-black uppercase tracking-tight md:text-4xl">Admin Dashboard</h1>
+      <FifaSyncSection />
       <SettingsSection />
       <TicketPricingSection />
       <NewsSection />
     </div>
+  );
+}
+
+function FifaSyncSection() {
+  const qc = useQueryClient();
+  const sync = useServerFn(syncFifaMatches);
+  const [syncing, setSyncing] = useState(false);
+
+  async function run() {
+    setSyncing(true);
+    try {
+      const res = await sync();
+      toast.success(`Synced ${res.total} matches (${res.created} new, ${res.updated} updated)`);
+      qc.invalidateQueries({ queryKey: ["matches"] });
+      qc.invalidateQueries({ queryKey: ["tickets", "min"] });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Sync failed");
+    } finally {
+      setSyncing(false);
+    }
+  }
+
+  return (
+    <section className="mb-12 border border-border bg-card p-6">
+      <h2 className="mb-2 text-lg font-bold uppercase tracking-tight">FIFA 2026 Live Data</h2>
+      <p className="mb-4 text-sm text-muted-foreground">
+        Pull the latest fixtures, scores, and statuses from football-data.org. New matches automatically get default ticket categories.
+      </p>
+      <button onClick={run} disabled={syncing}
+        className="inline-flex h-10 items-center gap-2 rounded-md bg-gold px-4 text-sm font-bold uppercase text-pitch hover:bg-gold-glow disabled:opacity-50">
+        <RefreshCw className={`h-4 w-4 ${syncing ? "animate-spin" : ""}`} /> {syncing ? "Syncing…" : "Sync now"}
+      </button>
+    </section>
   );
 }
 
