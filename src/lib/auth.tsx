@@ -18,30 +18,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, sess) => {
-      setSession(sess);
-      if (sess?.user) {
-        setTimeout(() => checkAdmin(sess.user.id), 0);
-      } else {
+    let active = true;
+
+    async function applySession(nextSession: Session | null) {
+      setLoading(true);
+      setSession(nextSession);
+
+      if (!nextSession?.user) {
         setIsAdmin(false);
+        setLoading(false);
+        return;
       }
+
+      const admin = await checkAdmin(nextSession.user.id);
+      if (!active) return;
+      setIsAdmin(admin);
+      setLoading(false);
+    }
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, sess) => {
+      void applySession(sess);
     });
     supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      if (data.session?.user) checkAdmin(data.session.user.id);
-      setLoading(false);
+      void applySession(data.session);
     });
-    return () => sub.subscription.unsubscribe();
+    return () => {
+      active = false;
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
   async function checkAdmin(userId: string) {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("user_roles")
       .select("role")
       .eq("user_id", userId)
       .eq("role", "admin")
       .maybeSingle();
-    setIsAdmin(!!data);
+    if (error) {
+      console.error("Unable to check admin role", error);
+      return false;
+    }
+    return !!data;
   }
 
   return (
