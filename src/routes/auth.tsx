@@ -1,6 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getAdminStatus } from "@/lib/admin-auth.functions";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -18,6 +20,7 @@ const schema = z.object({
 function AuthPage() {
   const navigate = useNavigate();
   const { user, isAdmin, loading: authLoading } = useAuth();
+  const fetchAdminStatus = useServerFn(getAdminStatus);
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -49,19 +52,8 @@ function AuthPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         toast.success("Signed in");
-        // Check admin role to redirect appropriately
-        const { data: sess } = await supabase.auth.getUser();
-        if (sess.user) {
-          const { data: roleRow } = await supabase
-            .from("user_roles")
-            .select("role")
-            .eq("user_id", sess.user.id)
-            .eq("role", "admin")
-            .maybeSingle();
-          navigate({ to: roleRow ? "/admin" : "/", replace: true });
-        } else {
-          navigate({ to: "/", replace: true });
-        }
+        const { isAdmin } = await fetchAdminStatus();
+        navigate({ to: isAdmin ? "/admin" : "/", replace: true });
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Authentication failed");
