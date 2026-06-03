@@ -39,7 +39,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, sess) => {
       void applySession(sess);
     });
-    supabase.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (!data.session) {
+        void applySession(null);
+        return;
+      }
+
+      const { data: userData, error } = await supabase.auth.getUser();
+      if (error || !userData.user) {
+        await supabase.auth.signOut();
+        void applySession(null);
+        return;
+      }
+
       void applySession(data.session);
     });
     return () => {
