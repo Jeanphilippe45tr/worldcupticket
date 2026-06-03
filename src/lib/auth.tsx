@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
+import { getAdminStatus } from "@/lib/admin-auth.functions";
 
 interface AuthCtx {
   session: Session | null;
@@ -16,32 +18,59 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const fetchAdminStatus = useServerFn(getAdminStatus);
 
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, sess) => {
-      setSession(sess);
-      if (sess?.user) {
-        setTimeout(() => checkAdmin(sess.user.id), 0);
-      } else {
-        setIsAdmin(false);
-      }
-    });
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      if (data.session?.user) checkAdmin(data.session.user.id);
-      setLoading(false);
-    });
-    return () => sub.subscription.unsubscribe();
-  }, []);
+    let active = true;
 
-  async function checkAdmin(userId: string) {
-    const { data } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .eq("role", "admin")
-      .maybeSingle();
-    setIsAdmin(!!data);
+    async function applySession(nextSession: Session | null) {
+      setLoading(true);
+      setSession(nextSession);
+
+      if (!nextSession?.user) {
+        setIsAdmin(false);
+        setLoading(false);
+        return;
+      }
+
+      const admin = await checkAdmin();
+      if (!active) return;
+      setIsAdmin(admin);
+      setLoading(false);
+    }
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, sess) => {
+      void applySession(sess);
+    });
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (!data.session) {
+        void applySession(null);
+        return;
+      }
+
+      const { data: userData, error } = await supabase.auth.getUser();
+      if (error || !userData.user) {
+        await supabase.auth.signOut();
+        void applySession(null);
+        return;
+      }
+
+      void applySession(data.session);
+    });
+    return () => {
+      active = false;
+      sub.subscription.unsubscribe();
+    };
+  }, [fetchAdminStatus]);
+
+  async function checkAdmin() {
+    try {
+      const { isAdmin } = await fetchAdminStatus();
+      return isAdmin;
+    } catch (error) {
+      console.error("Unable to check admin role", error);
+      return false;
+    }
   }
 
   return (
