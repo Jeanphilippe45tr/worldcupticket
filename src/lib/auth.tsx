@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
+import { getAdminStatus } from "@/lib/admin-auth.functions";
 
 interface AuthCtx {
   session: Session | null;
@@ -16,6 +18,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const fetchAdminStatus = useServerFn(getAdminStatus);
 
   useEffect(() => {
     let active = true;
@@ -30,7 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      const admin = await checkAdmin(nextSession.user.id);
+      const admin = await checkAdmin();
       if (!active) return;
       setIsAdmin(admin);
       setLoading(false);
@@ -58,20 +61,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       active = false;
       sub.subscription.unsubscribe();
     };
-  }, []);
+  }, [fetchAdminStatus]);
 
-  async function checkAdmin(userId: string) {
-    const { data, error } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .eq("role", "admin")
-      .maybeSingle();
-    if (error) {
+  async function checkAdmin() {
+    try {
+      const { isAdmin } = await fetchAdminStatus();
+      return isAdmin;
+    } catch (error) {
       console.error("Unable to check admin role", error);
       return false;
     }
-    return !!data;
   }
 
   return (
