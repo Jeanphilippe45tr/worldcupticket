@@ -15,6 +15,11 @@ export const Route = createFileRoute("/auth")({
 const schema = z.object({
   email: z.string().trim().email().max(255),
   password: z.string().min(6).max(72),
+  fullName: z.string().trim().min(2).max(120).optional(),
+  phone: z.string().trim().max(40).optional(),
+  address: z.string().trim().max(300).optional(),
+  city: z.string().trim().max(100).optional(),
+  country: z.string().trim().max(100).optional(),
 });
 
 function AuthPage() {
@@ -24,6 +29,11 @@ function AuthPage() {
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [city, setCity] = useState("");
+  const [country, setCountry] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -32,9 +42,13 @@ function AuthPage() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    const parsed = schema.safeParse({ email, password });
+    const parsed = schema.safeParse({ email, password, fullName, phone, address, city, country });
     if (!parsed.success) {
       toast.error(parsed.error.issues[0].message);
+      return;
+    }
+    if (mode === "signup" && !fullName.trim()) {
+      toast.error("Full name is required");
       return;
     }
     setLoading(true);
@@ -43,7 +57,16 @@ function AuthPage() {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: window.location.origin },
+          options: {
+            emailRedirectTo: window.location.origin,
+            data: {
+              full_name: fullName.trim(),
+              phone: phone.trim(),
+              address: address.trim(),
+              city: city.trim(),
+              country: country.trim(),
+            },
+          },
         });
         if (error) throw error;
         toast.success("Account created. You can sign in now.");
