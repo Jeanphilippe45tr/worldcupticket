@@ -5,7 +5,7 @@ import { useCart } from "@/lib/cart";
 import { formatMatchDate, formatMatchTime, formatPrice } from "@/lib/format";
 import { toast } from "sonner";
 import { useState } from "react";
-import { MapPin, Clock, Trophy } from "lucide-react";
+import { MapPin, Clock, Trophy, ShoppingCart } from "lucide-react";
 
 export const Route = createFileRoute("/matches/$matchId")({
   loader: ({ context, params }) =>
@@ -80,6 +80,9 @@ function MatchDetail() {
                     onChange={(e) => setQty((s) => ({ ...s, [t.id]: Math.max(1, Math.min(10, +e.target.value || 1)) }))}
                     className="h-10 w-16 rounded-md border border-border bg-secondary px-2 text-center"
                   />
+                  <div className="hidden min-w-24 text-right text-xs text-muted-foreground sm:block">
+                    Total <span className="font-mono font-bold text-gold">{formatPrice(Number(t.price) * q)}</span>
+                  </div>
                   <button
                     onClick={() => {
                       add({
@@ -99,9 +102,9 @@ function MatchDetail() {
                         },
                       });
                     }}
-                    className="h-10 rounded-md bg-gold px-4 text-sm font-bold uppercase text-pitch hover:bg-gold-glow"
+                    className="inline-flex h-10 items-center gap-2 rounded-md bg-gold px-4 text-sm font-bold uppercase text-pitch hover:bg-gold-glow"
                   >
-                    Add
+                    <ShoppingCart className="h-4 w-4" /> Add to cart
                   </button>
                 </div>
               </div>
