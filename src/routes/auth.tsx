@@ -112,6 +112,49 @@ function AuthPage() {
           placeholder="Password (min 6 chars)"
           className="h-11 w-full rounded-md border border-border bg-secondary px-3 text-sm"
         />
+        {mode === "signup" && (
+          <div className="space-y-3">
+            <input
+              required
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              placeholder="Full name"
+              className="h-11 w-full rounded-md border border-border bg-secondary px-3 text-sm"
+              maxLength={120}
+            />
+            <input
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="Phone / WhatsApp number"
+              className="h-11 w-full rounded-md border border-border bg-secondary px-3 text-sm"
+              maxLength={40}
+            />
+            <textarea
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              placeholder="Address"
+              rows={2}
+              className="w-full rounded-md border border-border bg-secondary px-3 py-2 text-sm"
+              maxLength={300}
+            />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <input
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                placeholder="City"
+                className="h-11 w-full rounded-md border border-border bg-secondary px-3 text-sm"
+                maxLength={100}
+              />
+              <input
+                value={country}
+                onChange={(e) => setCountry(e.target.value)}
+                placeholder="Country"
+                className="h-11 w-full rounded-md border border-border bg-secondary px-3 text-sm"
+                maxLength={100}
+              />
+            </div>
+          </div>
+        )}
         <button
           type="submit"
           disabled={loading}
