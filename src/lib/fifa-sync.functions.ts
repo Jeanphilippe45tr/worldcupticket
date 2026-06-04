@@ -20,14 +20,17 @@ export const syncFifaMatches = createServerFn({ method: "POST" })
     const apiKey = process.env.FOOTBALL_DATA_API_KEY;
     if (!apiKey) throw new Error("FOOTBALL_DATA_API_KEY is not configured");
 
-    // Verify caller is admin
-    const { supabase, userId } = context;
-    const { data: roleRow } = await supabase
+    const { userId } = context;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // Verify caller is admin with trusted backend access
+    const { data: roleRow, error: roleError } = await supabaseAdmin
       .from("user_roles")
       .select("role")
       .eq("user_id", userId)
       .eq("role", "admin")
       .maybeSingle();
+    if (roleError) throw roleError;
     if (!roleRow) throw new Error("Admin access required");
 
     const res = await fetch("https://api.football-data.org/v4/competitions/WC/matches", {
@@ -39,8 +42,6 @@ export const syncFifaMatches = createServerFn({ method: "POST" })
     }
     const json = (await res.json()) as { matches?: FDMatch[] };
     const matches = json.matches ?? [];
-
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     let created = 0;
     let updated = 0;
