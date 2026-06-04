@@ -22,13 +22,36 @@ export const getClientProfiles = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const supabaseAdmin = await requireAdmin(context.userId);
-    const { data, error } = await supabaseAdmin
+    const [{ data: profiles, error }, { data: users, error: usersError }] = await Promise.all([
+      supabaseAdmin
       .from("client_profiles")
       .select("*")
-      .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false }),
+      supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 }),
+    ]);
 
     if (error) throw error;
-    return data ?? [];
+    if (usersError) throw usersError;
+
+    const profileByUserId = new Map((profiles ?? []).map((profile) => [profile.user_id, profile]));
+    return users.users
+      .filter((user) => user.email)
+      .map((user) => {
+        const profile = profileByUserId.get(user.id);
+        const metadata = user.user_metadata ?? {};
+        return {
+          id: profile?.id ?? user.id,
+          user_id: user.id,
+          email: profile?.email ?? user.email ?? "",
+          full_name: profile?.full_name ?? String(metadata.full_name ?? ""),
+          phone: profile?.phone ?? (metadata.phone ? String(metadata.phone) : null),
+          address: profile?.address ?? (metadata.address ? String(metadata.address) : null),
+          city: profile?.city ?? (metadata.city ? String(metadata.city) : null),
+          country: profile?.country ?? (metadata.country ? String(metadata.country) : null),
+          created_at: profile?.created_at ?? user.created_at,
+        };
+      })
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   });
 
 export const updateSiteSettings = createServerFn({ method: "POST" })
