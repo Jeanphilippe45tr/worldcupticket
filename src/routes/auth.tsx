@@ -15,7 +15,7 @@ export const Route = createFileRoute("/auth")({
 const schema = z.object({
   email: z.string().trim().email().max(255),
   password: z.string().min(6).max(72),
-  fullName: z.string().trim().min(2).max(120).optional(),
+  fullName: z.string().trim().max(120).optional(),
   phone: z.string().trim().max(40).optional(),
   address: z.string().trim().max(300).optional(),
   city: z.string().trim().max(100).optional(),
