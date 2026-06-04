@@ -88,6 +88,48 @@ function FifaSyncSection() {
   );
 }
 
+function ClientsSection() {
+  const getClients = useServerFn(getClientProfiles);
+  const { data: clients, isLoading, error } = useQuery({
+    queryKey: ["admin", "clients"],
+    queryFn: () => getClients(),
+  });
+
+  return (
+    <section className="mb-12 border border-border bg-card p-6">
+      <h2 className="mb-4 text-lg font-bold uppercase tracking-tight">Registered Clients</h2>
+      {isLoading ? (
+        <p className="text-sm text-muted-foreground">Loading clients…</p>
+      ) : error ? (
+        <p className="text-sm text-destructive">{error.message}</p>
+      ) : clients?.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No clients registered yet.</p>
+      ) : (
+        <div className="grid gap-3 md:grid-cols-2">
+          {clients?.map((client) => (
+            <div key={client.user_id} className="border border-border bg-secondary/30 p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h3 className="font-bold uppercase tracking-tight">{client.full_name || "Unnamed client"}</h3>
+                  <p className="text-xs text-muted-foreground">{client.email}</p>
+                </div>
+                <span className="font-mono text-[10px] uppercase text-gold">
+                  {new Date(client.created_at).toLocaleDateString()}
+                </span>
+              </div>
+              <div className="mt-3 space-y-1 text-xs text-muted-foreground">
+                {client.phone && <p>Phone: {client.phone}</p>}
+                {client.address && <p>Address: {client.address}</p>}
+                {(client.city || client.country) && <p>Location: {[client.city, client.country].filter(Boolean).join(", ")}</p>}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
 function SettingsSection() {
   const qc = useQueryClient();
   const { data } = useQuery(settingsQuery);
