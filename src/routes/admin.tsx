@@ -194,6 +194,9 @@ function SettingsSection() {
 function TicketPricingSection() {
   const qc = useQueryClient();
   const { data: matches } = useQuery(matchesQuery);
+  const updateTicketCategoryFn = useServerFn(updateTicketCategory);
+  const addTicketCategoryFn = useServerFn(addTicketCategory);
+  const removeTicketCategoryFn = useServerFn(removeTicketCategory);
   const [selectedId, setSelectedId] = useState<string>("");
 
   useEffect(() => {
@@ -215,34 +218,38 @@ function TicketPricingSection() {
   });
 
   async function updateTicket(id: string, fields: { price?: number; available?: number; name?: string }) {
-    const { error } = await supabase.from("ticket_categories").update(fields).eq("id", id);
-    if (error) return toast.error(error.message);
-    toast.success("Updated");
-    qc.invalidateQueries({ queryKey: ["admin", "tickets", selectedId] });
-    qc.invalidateQueries({ queryKey: ["match", selectedId] });
-    qc.invalidateQueries({ queryKey: ["tickets", "min"] });
+    try {
+      await updateTicketCategoryFn({ data: { id, fields } });
+      toast.success("Updated");
+      qc.invalidateQueries({ queryKey: ["admin", "tickets", selectedId] });
+      qc.invalidateQueries({ queryKey: ["match", selectedId] });
+      qc.invalidateQueries({ queryKey: ["tickets", "min"] });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to update ticket");
+    }
   }
 
   async function addTicket() {
     if (!selectedId) return;
     const order = (ticketsQuery.data?.length ?? 0) + 1;
-    const { error } = await supabase.from("ticket_categories").insert({
-      match_id: selectedId,
-      name: `Category ${order}`,
-      price: 100,
-      available: 100,
-      sort_order: order,
-    });
-    if (error) return toast.error(error.message);
-    toast.success("Added");
-    qc.invalidateQueries({ queryKey: ["admin", "tickets", selectedId] });
+    try {
+      await addTicketCategoryFn({ data: { match_id: selectedId, name: `Category ${order}`, price: 100, available: 100, sort_order: order } });
+      toast.success("Added");
+      qc.invalidateQueries({ queryKey: ["admin", "tickets", selectedId] });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to add ticket");
+    }
   }
 
   async function removeTicket(id: string) {
-    const { error } = await supabase.from("ticket_categories").delete().eq("id", id);
-    if (error) return toast.error(error.message);
-    toast.success("Removed");
-    qc.invalidateQueries({ queryKey: ["admin", "tickets", selectedId] });
+    try {
+      await removeTicketCategoryFn({ data: { id } });
+      toast.success("Removed");
+      qc.invalidateQueries({ queryKey: ["admin", "tickets", selectedId] });
+      qc.invalidateQueries({ queryKey: ["tickets", "min"] });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to remove ticket");
+    }
   }
 
   return (
@@ -293,6 +300,8 @@ function TicketPricingSection() {
 function NewsSection() {
   const qc = useQueryClient();
   const { data: news } = useQuery(newsQuery);
+  const addNewsItemFn = useServerFn(addNewsItem);
+  const removeNewsItemFn = useServerFn(removeNewsItem);
   const [title, setTitle] = useState("");
   const [excerpt, setExcerpt] = useState("");
   const [body, setBody] = useState("");
@@ -300,22 +309,23 @@ function NewsSection() {
 
   async function add() {
     if (!title.trim()) return toast.error("Title required");
-    const { error } = await supabase.from("news").insert({
-      title: title.trim(),
-      excerpt: excerpt.trim() || null,
-      body: body.trim() || null,
-      category: category.trim() || "News",
-    });
-    if (error) return toast.error(error.message);
-    toast.success("News published");
-    setTitle(""); setExcerpt(""); setBody("");
-    qc.invalidateQueries({ queryKey: ["news"] });
+    try {
+      await addNewsItemFn({ data: { title: title.trim(), excerpt: excerpt.trim(), body: body.trim(), category: category.trim() || "News" } });
+      toast.success("News published");
+      setTitle(""); setExcerpt(""); setBody("");
+      qc.invalidateQueries({ queryKey: ["news"] });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to publish news");
+    }
   }
 
   async function remove(id: string) {
-    const { error } = await supabase.from("news").delete().eq("id", id);
-    if (error) return toast.error(error.message);
-    qc.invalidateQueries({ queryKey: ["news"] });
+    try {
+      await removeNewsItemFn({ data: { id } });
+      qc.invalidateQueries({ queryKey: ["news"] });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to remove news");
+    }
   }
 
   return (
