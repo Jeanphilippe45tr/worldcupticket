@@ -9,6 +9,15 @@ import { toast } from "sonner";
 import { formatPrice } from "@/lib/format";
 import { Trash2, Save, Plus, RefreshCw } from "lucide-react";
 import { syncFifaMatches } from "@/lib/fifa-sync.functions";
+import {
+  addNewsItem,
+  addTicketCategory,
+  getClientProfiles,
+  removeNewsItem,
+  removeTicketCategory,
+  updateSiteSettings,
+  updateTicketCategory,
+} from "@/lib/admin-dashboard.functions";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin — World Cup Tickets" }] }),
@@ -38,6 +47,7 @@ function AdminPage() {
     <div className="mx-auto max-w-6xl px-4 py-12 md:px-6">
       <h1 className="mb-8 text-3xl font-black uppercase tracking-tight md:text-4xl">Admin Dashboard</h1>
       <FifaSyncSection />
+      <ClientsSection />
       <SettingsSection />
       <TicketPricingSection />
       <NewsSection />
@@ -78,9 +88,52 @@ function FifaSyncSection() {
   );
 }
 
+function ClientsSection() {
+  const getClients = useServerFn(getClientProfiles);
+  const { data: clients, isLoading, error } = useQuery({
+    queryKey: ["admin", "clients"],
+    queryFn: () => getClients(),
+  });
+
+  return (
+    <section className="mb-12 border border-border bg-card p-6">
+      <h2 className="mb-4 text-lg font-bold uppercase tracking-tight">Registered Clients</h2>
+      {isLoading ? (
+        <p className="text-sm text-muted-foreground">Loading clients…</p>
+      ) : error ? (
+        <p className="text-sm text-destructive">{error.message}</p>
+      ) : clients?.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No clients registered yet.</p>
+      ) : (
+        <div className="grid gap-3 md:grid-cols-2">
+          {clients?.map((client) => (
+            <div key={client.user_id} className="border border-border bg-secondary/30 p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h3 className="font-bold uppercase tracking-tight">{client.full_name || "Unnamed client"}</h3>
+                  <p className="text-xs text-muted-foreground">{client.email}</p>
+                </div>
+                <span className="font-mono text-[10px] uppercase text-gold">
+                  {new Date(client.created_at).toLocaleDateString()}
+                </span>
+              </div>
+              <div className="mt-3 space-y-1 text-xs text-muted-foreground">
+                {client.phone && <p>Phone: {client.phone}</p>}
+                {client.address && <p>Address: {client.address}</p>}
+                {(client.city || client.country) && <p>Location: {[client.city, client.country].filter(Boolean).join(", ")}</p>}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
 function SettingsSection() {
   const qc = useQueryClient();
   const { data } = useQuery(settingsQuery);
+  const saveSettings = useServerFn(updateSiteSettings);
   const [wa, setWa] = useState("");
   const [methodsText, setMethodsText] = useState("");
   const [currency, setCurrency] = useState("USD");
@@ -98,14 +151,15 @@ function SettingsSection() {
     if (!data) return;
     setSaving(true);
     const methods = methodsText.split(",").map((s) => s.trim()).filter(Boolean);
-    const { error } = await supabase
-      .from("site_settings")
-      .update({ whatsapp_number: wa.trim(), payment_methods: methods, currency: currency.trim().toUpperCase() })
-      .eq("id", data.id);
-    setSaving(false);
-    if (error) return toast.error(error.message);
-    toast.success("Settings saved");
-    qc.invalidateQueries({ queryKey: ["site_settings"] });
+    try {
+      await saveSettings({ data: { id: data.id, whatsapp_number: wa.trim(), payment_methods: methods, currency: currency.trim().toUpperCase() } });
+      toast.success("Settings saved");
+      qc.invalidateQueries({ queryKey: ["site_settings"] });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to save settings");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -140,6 +194,9 @@ function SettingsSection() {
 function TicketPricingSection() {
   const qc = useQueryClient();
   const { data: matches } = useQuery(matchesQuery);
+  const updateTicketCategoryFn = useServerFn(updateTicketCategory);
+  const addTicketCategoryFn = useServerFn(addTicketCategory);
+  const removeTicketCategoryFn = useServerFn(removeTicketCategory);
   const [selectedId, setSelectedId] = useState<string>("");
 
   useEffect(() => {
@@ -161,34 +218,38 @@ function TicketPricingSection() {
   });
 
   async function updateTicket(id: string, fields: { price?: number; available?: number; name?: string }) {
-    const { error } = await supabase.from("ticket_categories").update(fields).eq("id", id);
-    if (error) return toast.error(error.message);
-    toast.success("Updated");
-    qc.invalidateQueries({ queryKey: ["admin", "tickets", selectedId] });
-    qc.invalidateQueries({ queryKey: ["match", selectedId] });
-    qc.invalidateQueries({ queryKey: ["tickets", "min"] });
+    try {
+      await updateTicketCategoryFn({ data: { id, fields } });
+      toast.success("Updated");
+      qc.invalidateQueries({ queryKey: ["admin", "tickets", selectedId] });
+      qc.invalidateQueries({ queryKey: ["match", selectedId] });
+      qc.invalidateQueries({ queryKey: ["tickets", "min"] });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to update ticket");
+    }
   }
 
   async function addTicket() {
     if (!selectedId) return;
     const order = (ticketsQuery.data?.length ?? 0) + 1;
-    const { error } = await supabase.from("ticket_categories").insert({
-      match_id: selectedId,
-      name: `Category ${order}`,
-      price: 100,
-      available: 100,
-      sort_order: order,
-    });
-    if (error) return toast.error(error.message);
-    toast.success("Added");
-    qc.invalidateQueries({ queryKey: ["admin", "tickets", selectedId] });
+    try {
+      await addTicketCategoryFn({ data: { match_id: selectedId, name: `Category ${order}`, price: 100, available: 100, sort_order: order } });
+      toast.success("Added");
+      qc.invalidateQueries({ queryKey: ["admin", "tickets", selectedId] });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to add ticket");
+    }
   }
 
   async function removeTicket(id: string) {
-    const { error } = await supabase.from("ticket_categories").delete().eq("id", id);
-    if (error) return toast.error(error.message);
-    toast.success("Removed");
-    qc.invalidateQueries({ queryKey: ["admin", "tickets", selectedId] });
+    try {
+      await removeTicketCategoryFn({ data: { id } });
+      toast.success("Removed");
+      qc.invalidateQueries({ queryKey: ["admin", "tickets", selectedId] });
+      qc.invalidateQueries({ queryKey: ["tickets", "min"] });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to remove ticket");
+    }
   }
 
   return (
@@ -239,6 +300,8 @@ function TicketPricingSection() {
 function NewsSection() {
   const qc = useQueryClient();
   const { data: news } = useQuery(newsQuery);
+  const addNewsItemFn = useServerFn(addNewsItem);
+  const removeNewsItemFn = useServerFn(removeNewsItem);
   const [title, setTitle] = useState("");
   const [excerpt, setExcerpt] = useState("");
   const [body, setBody] = useState("");
@@ -246,22 +309,23 @@ function NewsSection() {
 
   async function add() {
     if (!title.trim()) return toast.error("Title required");
-    const { error } = await supabase.from("news").insert({
-      title: title.trim(),
-      excerpt: excerpt.trim() || null,
-      body: body.trim() || null,
-      category: category.trim() || "News",
-    });
-    if (error) return toast.error(error.message);
-    toast.success("News published");
-    setTitle(""); setExcerpt(""); setBody("");
-    qc.invalidateQueries({ queryKey: ["news"] });
+    try {
+      await addNewsItemFn({ data: { title: title.trim(), excerpt: excerpt.trim(), body: body.trim(), category: category.trim() || "News" } });
+      toast.success("News published");
+      setTitle(""); setExcerpt(""); setBody("");
+      qc.invalidateQueries({ queryKey: ["news"] });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to publish news");
+    }
   }
 
   async function remove(id: string) {
-    const { error } = await supabase.from("news").delete().eq("id", id);
-    if (error) return toast.error(error.message);
-    qc.invalidateQueries({ queryKey: ["news"] });
+    try {
+      await removeNewsItemFn({ data: { id } });
+      qc.invalidateQueries({ queryKey: ["news"] });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to remove news");
+    }
   }
 
   return (
