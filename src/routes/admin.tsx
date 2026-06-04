@@ -9,6 +9,15 @@ import { toast } from "sonner";
 import { formatPrice } from "@/lib/format";
 import { Trash2, Save, Plus, RefreshCw } from "lucide-react";
 import { syncFifaMatches } from "@/lib/fifa-sync.functions";
+import {
+  addNewsItem,
+  addTicketCategory,
+  getClientProfiles,
+  removeNewsItem,
+  removeTicketCategory,
+  updateSiteSettings,
+  updateTicketCategory,
+} from "@/lib/admin-dashboard.functions";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin — World Cup Tickets" }] }),
@@ -38,6 +47,7 @@ function AdminPage() {
     <div className="mx-auto max-w-6xl px-4 py-12 md:px-6">
       <h1 className="mb-8 text-3xl font-black uppercase tracking-tight md:text-4xl">Admin Dashboard</h1>
       <FifaSyncSection />
+      <ClientsSection />
       <SettingsSection />
       <TicketPricingSection />
       <NewsSection />
@@ -81,6 +91,7 @@ function FifaSyncSection() {
 function SettingsSection() {
   const qc = useQueryClient();
   const { data } = useQuery(settingsQuery);
+  const saveSettings = useServerFn(updateSiteSettings);
   const [wa, setWa] = useState("");
   const [methodsText, setMethodsText] = useState("");
   const [currency, setCurrency] = useState("USD");
@@ -98,14 +109,15 @@ function SettingsSection() {
     if (!data) return;
     setSaving(true);
     const methods = methodsText.split(",").map((s) => s.trim()).filter(Boolean);
-    const { error } = await supabase
-      .from("site_settings")
-      .update({ whatsapp_number: wa.trim(), payment_methods: methods, currency: currency.trim().toUpperCase() })
-      .eq("id", data.id);
-    setSaving(false);
-    if (error) return toast.error(error.message);
-    toast.success("Settings saved");
-    qc.invalidateQueries({ queryKey: ["site_settings"] });
+    try {
+      await saveSettings({ data: { id: data.id, whatsapp_number: wa.trim(), payment_methods: methods, currency: currency.trim().toUpperCase() } });
+      toast.success("Settings saved");
+      qc.invalidateQueries({ queryKey: ["site_settings"] });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to save settings");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
