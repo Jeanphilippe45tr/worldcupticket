@@ -3,7 +3,8 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { useCart } from "@/lib/cart";
 import { settingsQuery } from "@/lib/queries";
 import { formatPrice, formatMatchDate } from "@/lib/format";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useAuth } from "@/lib/auth";
 import { Trash2, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -30,6 +31,18 @@ function CartPage() {
   const currency = settings?.currency ?? "USD";
 
   const [form, setForm] = useState({ name: "", email: "", address: "", paymentMethod: methods[0] ?? "" });
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (!user) return;
+    const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
+    setForm((prev) => ({
+      name: prev.name || String(meta.full_name ?? ""),
+      email: prev.email || user.email || "",
+      address: prev.address || [meta.address, meta.city, meta.country].filter(Boolean).join(", "),
+      paymentMethod: prev.paymentMethod || methods[0] || "",
+    }));
+  }, [user, methods]);
 
   function submit() {
     const parsed = checkoutSchema.safeParse(form);

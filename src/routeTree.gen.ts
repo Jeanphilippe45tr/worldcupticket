@@ -16,6 +16,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as MatchesMatchIdRouteImport } from './routes/matches.$matchId'
+import { Route as ApiPublicHooksSyncFifaRouteImport } from './routes/api/public/hooks/sync-fifa'
 
 const NewsRoute = NewsRouteImport.update({
   id: '/news',
@@ -52,6 +53,11 @@ const MatchesMatchIdRoute = MatchesMatchIdRouteImport.update({
   path: '/$matchId',
   getParentRoute: () => MatchesRoute,
 } as any)
+const ApiPublicHooksSyncFifaRoute = ApiPublicHooksSyncFifaRouteImport.update({
+  id: '/api/public/hooks/sync-fifa',
+  path: '/api/public/hooks/sync-fifa',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -61,6 +67,7 @@ export interface FileRoutesByFullPath {
   '/matches': typeof MatchesRouteWithChildren
   '/news': typeof NewsRoute
   '/matches/$matchId': typeof MatchesMatchIdRoute
+  '/api/public/hooks/sync-fifa': typeof ApiPublicHooksSyncFifaRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -70,6 +77,7 @@ export interface FileRoutesByTo {
   '/matches': typeof MatchesRouteWithChildren
   '/news': typeof NewsRoute
   '/matches/$matchId': typeof MatchesMatchIdRoute
+  '/api/public/hooks/sync-fifa': typeof ApiPublicHooksSyncFifaRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -80,6 +88,7 @@ export interface FileRoutesById {
   '/matches': typeof MatchesRouteWithChildren
   '/news': typeof NewsRoute
   '/matches/$matchId': typeof MatchesMatchIdRoute
+  '/api/public/hooks/sync-fifa': typeof ApiPublicHooksSyncFifaRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,6 +100,7 @@ export interface FileRouteTypes {
     | '/matches'
     | '/news'
     | '/matches/$matchId'
+    | '/api/public/hooks/sync-fifa'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -100,6 +110,7 @@ export interface FileRouteTypes {
     | '/matches'
     | '/news'
     | '/matches/$matchId'
+    | '/api/public/hooks/sync-fifa'
   id:
     | '__root__'
     | '/'
@@ -109,6 +120,7 @@ export interface FileRouteTypes {
     | '/matches'
     | '/news'
     | '/matches/$matchId'
+    | '/api/public/hooks/sync-fifa'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -118,6 +130,7 @@ export interface RootRouteChildren {
   CartRoute: typeof CartRoute
   MatchesRoute: typeof MatchesRouteWithChildren
   NewsRoute: typeof NewsRoute
+  ApiPublicHooksSyncFifaRoute: typeof ApiPublicHooksSyncFifaRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -171,6 +184,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MatchesMatchIdRouteImport
       parentRoute: typeof MatchesRoute
     }
+    '/api/public/hooks/sync-fifa': {
+      id: '/api/public/hooks/sync-fifa'
+      path: '/api/public/hooks/sync-fifa'
+      fullPath: '/api/public/hooks/sync-fifa'
+      preLoaderRoute: typeof ApiPublicHooksSyncFifaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -192,6 +212,7 @@ const rootRouteChildren: RootRouteChildren = {
   CartRoute: CartRoute,
   MatchesRoute: MatchesRouteWithChildren,
   NewsRoute: NewsRoute,
+  ApiPublicHooksSyncFifaRoute: ApiPublicHooksSyncFifaRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
