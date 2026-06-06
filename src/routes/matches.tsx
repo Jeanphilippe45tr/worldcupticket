@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
 import { matchesQuery } from "@/lib/queries";
 import { MatchCard } from "@/components/MatchCard";
@@ -37,9 +37,12 @@ export const Route = createFileRoute("/matches")({
 });
 
 function MatchesPage() {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
   const { data: matches } = useSuspenseQuery(matchesQuery);
   const { data: mins } = useSuspenseQuery(ticketsMinQuery);
   const [stage, setStage] = useState<string>("All");
+
+  if (pathname !== "/matches") return <Outlet />;
 
   const stages = ["All", ...Array.from(new Set(matches.map((m) => m.stage)))];
   const filtered = stage === "All" ? matches : matches.filter((m) => m.stage === stage);
