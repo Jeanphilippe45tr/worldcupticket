@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { matchDetailQuery } from "@/lib/queries";
 import { useCart } from "@/lib/cart";
@@ -19,6 +19,7 @@ function MatchDetail() {
   const { matchId } = Route.useParams();
   const { data } = useSuspenseQuery(matchDetailQuery(matchId));
   const { add } = useCart();
+  const navigate = useNavigate();
   const [qty, setQty] = useState<Record<string, number>>({});
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
 
@@ -40,7 +41,7 @@ function MatchDetail() {
     toast.success(`${quantity}× ${ticket.name} added to cart`, {
       action: {
         label: "View cart",
-        onClick: () => { window.location.href = "/cart"; },
+        onClick: () => navigate({ to: "/cart" }),
       },
     });
   }
