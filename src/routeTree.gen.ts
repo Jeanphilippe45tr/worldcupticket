@@ -13,6 +13,7 @@ import { Route as TeamsRouteImport } from './routes/teams'
 import { Route as NewsRouteImport } from './routes/news'
 import { Route as MatchesRouteImport } from './routes/matches'
 import { Route as HostCitiesRouteImport } from './routes/host-cities'
+import { Route as FormatRouteImport } from './routes/format'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
@@ -38,6 +39,11 @@ const MatchesRoute = MatchesRouteImport.update({
 const HostCitiesRoute = HostCitiesRouteImport.update({
   id: '/host-cities',
   path: '/host-cities',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FormatRoute = FormatRouteImport.update({
+  id: '/format',
+  path: '/format',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CartRoute = CartRouteImport.update({
@@ -76,6 +82,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
+  '/format': typeof FormatRoute
   '/host-cities': typeof HostCitiesRoute
   '/matches': typeof MatchesRouteWithChildren
   '/news': typeof NewsRoute
@@ -88,6 +95,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
+  '/format': typeof FormatRoute
   '/host-cities': typeof HostCitiesRoute
   '/matches': typeof MatchesRouteWithChildren
   '/news': typeof NewsRoute
@@ -101,6 +109,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
+  '/format': typeof FormatRoute
   '/host-cities': typeof HostCitiesRoute
   '/matches': typeof MatchesRouteWithChildren
   '/news': typeof NewsRoute
@@ -115,6 +124,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/cart'
+    | '/format'
     | '/host-cities'
     | '/matches'
     | '/news'
@@ -127,6 +137,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/cart'
+    | '/format'
     | '/host-cities'
     | '/matches'
     | '/news'
@@ -139,6 +150,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/cart'
+    | '/format'
     | '/host-cities'
     | '/matches'
     | '/news'
@@ -152,6 +164,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   AuthRoute: typeof AuthRoute
   CartRoute: typeof CartRoute
+  FormatRoute: typeof FormatRoute
   HostCitiesRoute: typeof HostCitiesRoute
   MatchesRoute: typeof MatchesRouteWithChildren
   NewsRoute: typeof NewsRoute
@@ -187,6 +200,13 @@ declare module '@tanstack/react-router' {
       path: '/host-cities'
       fullPath: '/host-cities'
       preLoaderRoute: typeof HostCitiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/format': {
+      id: '/format'
+      path: '/format'
+      fullPath: '/format'
+      preLoaderRoute: typeof FormatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cart': {
@@ -250,6 +270,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   AuthRoute: AuthRoute,
   CartRoute: CartRoute,
+  FormatRoute: FormatRoute,
   HostCitiesRoute: HostCitiesRoute,
   MatchesRoute: MatchesRouteWithChildren,
   NewsRoute: NewsRoute,
