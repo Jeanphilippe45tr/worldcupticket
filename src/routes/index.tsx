@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { featuredMatchesQuery, matchesQuery, newsQuery } from "@/lib/queries";
+import { featuredMatchesQuery, matchesQuery, newsQuery, liveNewsQuery } from "@/lib/queries";
 import { LiveTicker } from "@/components/LiveTicker";
 import { MatchCard } from "@/components/MatchCard";
 import { Countdown } from "@/components/Countdown";
@@ -11,6 +11,7 @@ export const Route = createFileRoute("/")({
     context.queryClient.ensureQueryData(featuredMatchesQuery);
     context.queryClient.ensureQueryData(matchesQuery);
     context.queryClient.ensureQueryData(newsQuery);
+    context.queryClient.ensureQueryData(liveNewsQuery);
   },
   component: Index,
 });
@@ -19,6 +20,23 @@ function Index() {
   const { data: featured } = useSuspenseQuery(featuredMatchesQuery);
   const { data: matches } = useSuspenseQuery(matchesQuery);
   const { data: news } = useSuspenseQuery(newsQuery);
+  const { data: live } = useSuspenseQuery(liveNewsQuery);
+  const headlines = [
+    ...news.map((n) => ({
+      id: n.id,
+      title: n.title,
+      excerpt: n.excerpt ?? "",
+      category: n.category ?? "Update",
+      link: null as string | null,
+    })),
+    ...live.map((n) => ({
+      id: n.id,
+      title: n.title,
+      excerpt: n.excerpt,
+      category: n.category,
+      link: n.link,
+    })),
+  ].slice(0, 3);
 
   return (
     <div>
@@ -103,13 +121,25 @@ function Index() {
       <section className="mx-auto max-w-7xl px-4 py-20 md:px-6">
         <h2 className="mb-10 text-2xl font-bold uppercase tracking-tight md:text-3xl">Latest Updates</h2>
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-          {news.slice(0, 3).map((n) => (
-            <article key={n.id} className="group cursor-pointer border border-border bg-card p-6 transition-colors hover:bg-turf">
-              <span className="font-mono text-[10px] uppercase tracking-widest text-gold">{n.category}</span>
-              <h3 className="mt-2 text-lg font-bold leading-snug group-hover:text-gold">{n.title}</h3>
-              <p className="mt-3 text-sm text-muted-foreground line-clamp-3">{n.excerpt}</p>
-            </article>
-          ))}
+          {headlines.map((n) => {
+            const inner = (
+              <>
+                <span className="font-mono text-[10px] uppercase tracking-widest text-gold">{n.category}</span>
+                <h3 className="mt-2 text-lg font-bold leading-snug group-hover:text-gold">{n.title}</h3>
+                <p className="mt-3 text-sm text-muted-foreground line-clamp-3">{n.excerpt}</p>
+              </>
+            );
+            return n.link ? (
+              <a key={n.id} href={n.link} target="_blank" rel="noopener noreferrer"
+                className="group block border border-border bg-card p-6 transition-colors hover:bg-turf">
+                {inner}
+              </a>
+            ) : (
+              <article key={n.id} className="group cursor-pointer border border-border bg-card p-6 transition-colors hover:bg-turf">
+                {inner}
+              </article>
+            );
+          })}
         </div>
         <div className="mt-8 text-center">
           <Link to="/news" className="font-mono text-xs uppercase tracking-widest text-gold hover:text-gold-glow">
