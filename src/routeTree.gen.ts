@@ -9,8 +9,12 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TeamsRouteImport } from './routes/teams'
 import { Route as NewsRouteImport } from './routes/news'
 import { Route as MatchesRouteImport } from './routes/matches'
+import { Route as HostCitiesRouteImport } from './routes/host-cities'
+import { Route as FormatRouteImport } from './routes/format'
+import { Route as FanGuideRouteImport } from './routes/fan-guide'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
@@ -18,6 +22,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as MatchesMatchIdRouteImport } from './routes/matches.$matchId'
 import { Route as ApiPublicHooksSyncFifaRouteImport } from './routes/api/public/hooks/sync-fifa'
 
+const TeamsRoute = TeamsRouteImport.update({
+  id: '/teams',
+  path: '/teams',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const NewsRoute = NewsRouteImport.update({
   id: '/news',
   path: '/news',
@@ -26,6 +35,21 @@ const NewsRoute = NewsRouteImport.update({
 const MatchesRoute = MatchesRouteImport.update({
   id: '/matches',
   path: '/matches',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HostCitiesRoute = HostCitiesRouteImport.update({
+  id: '/host-cities',
+  path: '/host-cities',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FormatRoute = FormatRouteImport.update({
+  id: '/format',
+  path: '/format',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FanGuideRoute = FanGuideRouteImport.update({
+  id: '/fan-guide',
+  path: '/fan-guide',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CartRoute = CartRouteImport.update({
@@ -64,8 +88,12 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
+  '/fan-guide': typeof FanGuideRoute
+  '/format': typeof FormatRoute
+  '/host-cities': typeof HostCitiesRoute
   '/matches': typeof MatchesRouteWithChildren
   '/news': typeof NewsRoute
+  '/teams': typeof TeamsRoute
   '/matches/$matchId': typeof MatchesMatchIdRoute
   '/api/public/hooks/sync-fifa': typeof ApiPublicHooksSyncFifaRoute
 }
@@ -74,8 +102,12 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
+  '/fan-guide': typeof FanGuideRoute
+  '/format': typeof FormatRoute
+  '/host-cities': typeof HostCitiesRoute
   '/matches': typeof MatchesRouteWithChildren
   '/news': typeof NewsRoute
+  '/teams': typeof TeamsRoute
   '/matches/$matchId': typeof MatchesMatchIdRoute
   '/api/public/hooks/sync-fifa': typeof ApiPublicHooksSyncFifaRoute
 }
@@ -85,8 +117,12 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
+  '/fan-guide': typeof FanGuideRoute
+  '/format': typeof FormatRoute
+  '/host-cities': typeof HostCitiesRoute
   '/matches': typeof MatchesRouteWithChildren
   '/news': typeof NewsRoute
+  '/teams': typeof TeamsRoute
   '/matches/$matchId': typeof MatchesMatchIdRoute
   '/api/public/hooks/sync-fifa': typeof ApiPublicHooksSyncFifaRoute
 }
@@ -97,8 +133,12 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/cart'
+    | '/fan-guide'
+    | '/format'
+    | '/host-cities'
     | '/matches'
     | '/news'
+    | '/teams'
     | '/matches/$matchId'
     | '/api/public/hooks/sync-fifa'
   fileRoutesByTo: FileRoutesByTo
@@ -107,8 +147,12 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/cart'
+    | '/fan-guide'
+    | '/format'
+    | '/host-cities'
     | '/matches'
     | '/news'
+    | '/teams'
     | '/matches/$matchId'
     | '/api/public/hooks/sync-fifa'
   id:
@@ -117,8 +161,12 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/cart'
+    | '/fan-guide'
+    | '/format'
+    | '/host-cities'
     | '/matches'
     | '/news'
+    | '/teams'
     | '/matches/$matchId'
     | '/api/public/hooks/sync-fifa'
   fileRoutesById: FileRoutesById
@@ -128,13 +176,24 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   AuthRoute: typeof AuthRoute
   CartRoute: typeof CartRoute
+  FanGuideRoute: typeof FanGuideRoute
+  FormatRoute: typeof FormatRoute
+  HostCitiesRoute: typeof HostCitiesRoute
   MatchesRoute: typeof MatchesRouteWithChildren
   NewsRoute: typeof NewsRoute
+  TeamsRoute: typeof TeamsRoute
   ApiPublicHooksSyncFifaRoute: typeof ApiPublicHooksSyncFifaRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/teams': {
+      id: '/teams'
+      path: '/teams'
+      fullPath: '/teams'
+      preLoaderRoute: typeof TeamsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/news': {
       id: '/news'
       path: '/news'
@@ -147,6 +206,27 @@ declare module '@tanstack/react-router' {
       path: '/matches'
       fullPath: '/matches'
       preLoaderRoute: typeof MatchesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/host-cities': {
+      id: '/host-cities'
+      path: '/host-cities'
+      fullPath: '/host-cities'
+      preLoaderRoute: typeof HostCitiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/format': {
+      id: '/format'
+      path: '/format'
+      fullPath: '/format'
+      preLoaderRoute: typeof FormatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fan-guide': {
+      id: '/fan-guide'
+      path: '/fan-guide'
+      fullPath: '/fan-guide'
+      preLoaderRoute: typeof FanGuideRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cart': {
@@ -210,8 +290,12 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   AuthRoute: AuthRoute,
   CartRoute: CartRoute,
+  FanGuideRoute: FanGuideRoute,
+  FormatRoute: FormatRoute,
+  HostCitiesRoute: HostCitiesRoute,
   MatchesRoute: MatchesRouteWithChildren,
   NewsRoute: NewsRoute,
+  TeamsRoute: TeamsRoute,
   ApiPublicHooksSyncFifaRoute: ApiPublicHooksSyncFifaRoute,
 }
 export const routeTree = rootRouteImport
