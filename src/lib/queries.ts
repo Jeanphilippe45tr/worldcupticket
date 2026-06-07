@@ -1,5 +1,6 @@
 import { queryOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getLiveWorldCupNews } from "@/lib/news-feed.functions";
 
 export const settingsQuery = queryOptions({
   queryKey: ["site_settings"],
@@ -50,6 +51,12 @@ export const newsQuery = queryOptions({
     if (error) throw error;
     return data ?? [];
   },
+});
+
+export const liveNewsQuery = queryOptions({
+  queryKey: ["news", "live"],
+  queryFn: () => getLiveWorldCupNews(),
+  staleTime: 1000 * 60 * 10,
 });
 
 export const matchDetailQuery = (id: string) =>
