@@ -31,17 +31,24 @@ function pick(xml: string, tag: string): string {
   return m[1].replace(/^<!\[CDATA\[/, "").replace(/\]\]>$/, "").trim();
 }
 
-function stripHtml(s: string): string {
+function decodeEntities(s: string): string {
   return s
-    .replace(/<[^>]+>/g, " ")
     .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
-    .replace(/\s+/g, " ")
-    .trim();
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
+    .replace(/&amp;/g, "&");
+}
+
+function stripHtml(s: string): string {
+  // Decode entities FIRST so encoded tags (&lt;a&gt;) become real tags, then strip.
+  let out = decodeEntities(s);
+  out = decodeEntities(out); // handle double-encoded
+  out = out.replace(/<[^>]+>/g, " ");
+  return out.replace(/\s+/g, " ").trim();
 }
 
 function parseItems(xml: string, category: string): LiveNewsItem[] {
