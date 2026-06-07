@@ -26,6 +26,18 @@ export function SiteHeader() {
           <Link to="/matches" className="text-foreground/70 transition-colors hover:text-gold [&.active]:text-gold">
             Matches
           </Link>
+          <Link to="/host-cities" className="text-foreground/70 transition-colors hover:text-gold [&.active]:text-gold">
+            Host Cities
+          </Link>
+          <Link to="/teams" className="text-foreground/70 transition-colors hover:text-gold [&.active]:text-gold">
+            Teams
+          </Link>
+          <Link to="/format" className="text-foreground/70 transition-colors hover:text-gold [&.active]:text-gold">
+            Format
+          </Link>
+          <Link to="/fan-guide" className="text-foreground/70 transition-colors hover:text-gold [&.active]:text-gold">
+            Fan Guide
+          </Link>
           <Link to="/news" className="text-foreground/70 transition-colors hover:text-gold [&.active]:text-gold">
             News
           </Link>
@@ -79,6 +91,10 @@ export function SiteHeader() {
           <nav className="mx-auto flex max-w-7xl flex-col px-4 py-4 text-sm">
             <Link to="/" onClick={() => setOpen(false)} className="py-2">Home</Link>
             <Link to="/matches" onClick={() => setOpen(false)} className="py-2">Matches</Link>
+            <Link to="/host-cities" onClick={() => setOpen(false)} className="py-2">Host Cities</Link>
+            <Link to="/teams" onClick={() => setOpen(false)} className="py-2">Teams</Link>
+            <Link to="/format" onClick={() => setOpen(false)} className="py-2">Format</Link>
+            <Link to="/fan-guide" onClick={() => setOpen(false)} className="py-2">Fan Guide</Link>
             <Link to="/news" onClick={() => setOpen(false)} className="py-2">News</Link>
             {isAdmin && <Link to="/admin" onClick={() => setOpen(false)} className="py-2">Admin</Link>}
             {user ? (
