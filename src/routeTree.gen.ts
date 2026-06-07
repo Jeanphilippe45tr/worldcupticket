@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TeamsRouteImport } from './routes/teams'
 import { Route as NewsRouteImport } from './routes/news'
 import { Route as MatchesRouteImport } from './routes/matches'
 import { Route as HostCitiesRouteImport } from './routes/host-cities'
@@ -19,6 +20,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as MatchesMatchIdRouteImport } from './routes/matches.$matchId'
 import { Route as ApiPublicHooksSyncFifaRouteImport } from './routes/api/public/hooks/sync-fifa'
 
+const TeamsRoute = TeamsRouteImport.update({
+  id: '/teams',
+  path: '/teams',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const NewsRoute = NewsRouteImport.update({
   id: '/news',
   path: '/news',
@@ -73,6 +79,7 @@ export interface FileRoutesByFullPath {
   '/host-cities': typeof HostCitiesRoute
   '/matches': typeof MatchesRouteWithChildren
   '/news': typeof NewsRoute
+  '/teams': typeof TeamsRoute
   '/matches/$matchId': typeof MatchesMatchIdRoute
   '/api/public/hooks/sync-fifa': typeof ApiPublicHooksSyncFifaRoute
 }
@@ -84,6 +91,7 @@ export interface FileRoutesByTo {
   '/host-cities': typeof HostCitiesRoute
   '/matches': typeof MatchesRouteWithChildren
   '/news': typeof NewsRoute
+  '/teams': typeof TeamsRoute
   '/matches/$matchId': typeof MatchesMatchIdRoute
   '/api/public/hooks/sync-fifa': typeof ApiPublicHooksSyncFifaRoute
 }
@@ -96,6 +104,7 @@ export interface FileRoutesById {
   '/host-cities': typeof HostCitiesRoute
   '/matches': typeof MatchesRouteWithChildren
   '/news': typeof NewsRoute
+  '/teams': typeof TeamsRoute
   '/matches/$matchId': typeof MatchesMatchIdRoute
   '/api/public/hooks/sync-fifa': typeof ApiPublicHooksSyncFifaRoute
 }
@@ -109,6 +118,7 @@ export interface FileRouteTypes {
     | '/host-cities'
     | '/matches'
     | '/news'
+    | '/teams'
     | '/matches/$matchId'
     | '/api/public/hooks/sync-fifa'
   fileRoutesByTo: FileRoutesByTo
@@ -120,6 +130,7 @@ export interface FileRouteTypes {
     | '/host-cities'
     | '/matches'
     | '/news'
+    | '/teams'
     | '/matches/$matchId'
     | '/api/public/hooks/sync-fifa'
   id:
@@ -131,6 +142,7 @@ export interface FileRouteTypes {
     | '/host-cities'
     | '/matches'
     | '/news'
+    | '/teams'
     | '/matches/$matchId'
     | '/api/public/hooks/sync-fifa'
   fileRoutesById: FileRoutesById
@@ -143,11 +155,19 @@ export interface RootRouteChildren {
   HostCitiesRoute: typeof HostCitiesRoute
   MatchesRoute: typeof MatchesRouteWithChildren
   NewsRoute: typeof NewsRoute
+  TeamsRoute: typeof TeamsRoute
   ApiPublicHooksSyncFifaRoute: typeof ApiPublicHooksSyncFifaRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/teams': {
+      id: '/teams'
+      path: '/teams'
+      fullPath: '/teams'
+      preLoaderRoute: typeof TeamsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/news': {
       id: '/news'
       path: '/news'
@@ -233,6 +253,7 @@ const rootRouteChildren: RootRouteChildren = {
   HostCitiesRoute: HostCitiesRoute,
   MatchesRoute: MatchesRouteWithChildren,
   NewsRoute: NewsRoute,
+  TeamsRoute: TeamsRoute,
   ApiPublicHooksSyncFifaRoute: ApiPublicHooksSyncFifaRoute,
 }
 export const routeTree = rootRouteImport
