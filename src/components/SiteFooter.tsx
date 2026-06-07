@@ -20,6 +20,10 @@ export function SiteFooter() {
             <ul className="space-y-2 text-muted-foreground">
               <li><Link to="/" className="hover:text-foreground">Home</Link></li>
               <li><Link to="/matches" className="hover:text-foreground">All Matches</Link></li>
+              <li><Link to="/host-cities" className="hover:text-foreground">Host Cities</Link></li>
+              <li><Link to="/teams" className="hover:text-foreground">Teams</Link></li>
+              <li><Link to="/format" className="hover:text-foreground">Tournament Format</Link></li>
+              <li><Link to="/fan-guide" className="hover:text-foreground">Fan Guide</Link></li>
               <li><Link to="/news" className="hover:text-foreground">News</Link></li>
               <li><Link to="/cart" className="hover:text-foreground">Cart</Link></li>
             </ul>
